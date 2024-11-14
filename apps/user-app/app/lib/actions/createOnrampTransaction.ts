@@ -1,4 +1,5 @@
 "use server";
+
 import prisma from "@repo/db/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
@@ -18,8 +19,8 @@ export async function createOnRampTransaction(provider: string, amount: number) 
             status: "Processing",
             startTime: new Date(),
             token: token,
-            userId: Number(session?.user?.id),
-            amount: amount * 100
+            userId: Number(session.user.id),
+            amount: Math.round(amount * 100), // ensure it's an integer
         }
     });
 
