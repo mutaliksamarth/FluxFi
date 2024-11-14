@@ -1,6 +1,4 @@
-# Turborepo starter
-
-This is an official starter Turborepo.
+# FluxFi starter
 
 ## Using this example
 
