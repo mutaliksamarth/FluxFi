@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, ArrowLeftRight, Clock, MenuIcon, X } from "lucide-react";
+import { Home, ArrowLeftRight, HandCoins, Clock, MenuIcon, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "../../../../packages/lib/util";
@@ -84,6 +84,12 @@ export default function Layout({
             href="/transactions" 
             icon={<Clock />} 
             title="Transactions" 
+            isCollapsed={isCollapsed}
+          />
+          <SidebarItem 
+            href="/p2ptransfer" 
+            icon={<HandCoins/>} 
+            title="P2P Transfer" 
             isCollapsed={isCollapsed}
           />
         </nav>

@@ -1,5 +1,12 @@
 {
   "extends": "@repo/typescript-config/base.json",
-  
-  
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/app/*": ["src/app/*"],
+      "@/components/*": ["src/components/*"],
+      "@/repo/ui/*": ["src/repo/ui/*"],
+      "@/types": ["src/types/index.ts"] // Ensure this points to your types file
+    }
+  }
 }
