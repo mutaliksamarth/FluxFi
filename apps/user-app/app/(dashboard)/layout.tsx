@@ -68,16 +68,11 @@ export default function Layout({
         </Button>
 
         <nav className="space-y-1">
+         
           <SidebarItem 
             href="/dashboard" 
-            icon={<Home />} 
-            title="Home" 
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem 
-            href="/transfer" 
             icon={<ArrowLeftRight />} 
-            title="Transfer" 
+            title="Home" 
             isCollapsed={isCollapsed}
           />
           <SidebarItem 

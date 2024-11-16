@@ -34,6 +34,14 @@ export async function p2pTransfer(to: string, amount: number): Promise<TransferR
         };
     }
 
+    if (toUser.id === Number(from)) {
+        return {
+            success: false,
+            error: "INVALID_TRANSFER",
+            message: "Cannot transfer to self."
+        };
+    }
+
     try {
         await prisma.$transaction(async (tx) => {
             await tx.$queryRaw`SELECT * FROM "Balance" WHERE "userId" = ${Number(from)} FOR UPDATE`;

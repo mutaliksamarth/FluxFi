@@ -4,6 +4,7 @@ import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
 import { Center } from "@repo/ui/center";
 import { Input } from "@repo/ui/textinput";
+import { set } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ export function SendCard() {
     const [number, setNumber] = useState("");
     const [amount, setAmount] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [transferStatus,setTransferStatus] = useState("Send Money");
 
     const resetForm = () => {
         setNumber("");
@@ -18,13 +20,16 @@ export function SendCard() {
     };
 
     const handleTransfer = async () => {
+        setTransferStatus("Sending...");
         if (!number || !amount) {
             toast.error("Please fill in all fields");
+            setTransferStatus("Send Money");
             return;
         }
 
         if (isNaN(Number(amount)) || Number(amount) <= 0) {
             toast.error("Please enter a valid amount");
+            setTransferStatus("Send Money");
             return;
         }
 
@@ -41,12 +46,17 @@ export function SendCard() {
 
     const handleTransferSuccess = (response: any) => {
         if (response.success) {
+            setTransferStatus("Transfer Successful");
+            setTimeout(() => {setTransferStatus("Send Money")}, 2000);
             toast.success("Transfer completed successfully!");
             resetForm();
         } else if (response.error === "INSUFFICIENT_BALANCE") {
-            toast.error("Insufficient balance. Please check your account.");
+            setTransferStatus("Insufficient balance") 
+            setTimeout(()  => {setTransferStatus("Send Money")}, 2000);
+
         } else {
-            toast.error("Transaction failed. Please try again.");
+            setTransferStatus("Transfer failed");
+            setTimeout(() => {setTransferStatus("Send Money")}, 2000);                  
         }
     };
 
@@ -54,9 +64,11 @@ export function SendCard() {
         toast.error(error instanceof Error ? error.message : "Transfer failed. Please try again.");
     };
 
+
+
     if (isLoading) {
         return (
-            <Card className="p-4 max-w-md mx-auto">
+            <Card title="" className="p-4 max-w-md mx-auto">
                 <div className="flex justify-center items-center h-32">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 dark:border-gray-100" />
                 </div>
@@ -66,10 +78,9 @@ export function SendCard() {
 
     return (
         <div className="w-full">
-            <Card className="p-4 max-w-md mx-auto bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 hover:shadow-md">
-                <h2 className="text-lg font-semibold mb-6 text-gray-900 dark:text-gray-100">
-                    Send Money
-                </h2>
+            <Card title="Send Money">
+                    
+               
                 <div className="space-y-6">
                     <div className="space-y-2 transition-all duration-200">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -110,9 +121,10 @@ export function SendCard() {
                                 transition-all duration-200 
                                 dark:bg-purple-500 dark:hover:bg-purple-600`}
                             onClick={handleTransfer}
+                            
                             disabled={isLoading}
                         >
-                            Send Money
+                            {transferStatus}
                         </Button>
                     </Center>
                 </div>

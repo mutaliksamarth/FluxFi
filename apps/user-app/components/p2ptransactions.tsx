@@ -5,7 +5,7 @@ import { formatDistance } from 'date-fns';
 
 interface User {
     id: number;
-    name: string;
+    name: string | null; // Make name nullable to match DB schema
     avatar?: string;
 }
 
@@ -32,6 +32,45 @@ const formatAmount = (amount: number): string => {
     }).format(amount / 100);
 };
 
+// New TransactionCard component
+interface TransactionCardProps {
+  transfer: P2PTransfer;
+  currentUserId: number;
+  className?: string;
+}
+
+const TransactionCard: React.FC<TransactionCardProps> = ({ transfer, currentUserId, className }) => {
+  const isReceived = transfer.toUserId === currentUserId;
+  const displayUser = isReceived ? transfer.fromUser : transfer.toUser;
+  
+  return (
+    <Card className={`p-6 mb-4 hover:shadow-lg transition-shadow ${className}`} title={''}>
+      <div className="flex items-center space-x-4">
+        {displayUser.avatar && (
+          <img
+            src={displayUser.avatar}
+            alt={displayUser.name || 'User avatar'}
+            className="w-16 h-16 rounded-full"
+          />
+        )}
+        <div className="flex-grow">
+          <p className="text-xl font-semibold">
+            {isReceived ? 'Received from' : 'Sent to'} {displayUser.name}
+          </p>
+          <p className="text-2xl font-bold mt-2">
+            {isReceived ? '+' : '-'}{transfer.amount.toLocaleString()}
+          </p>
+          <p className="text-gray-500 text-sm mt-1">
+            {formatDistance(new Date(transfer.timestamp), new Date(), { addSuffix: true })}
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default TransactionCard;
+
 export function P2PTransactions({ transfers, currentUserId }: P2PTransactionsProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [sortedTransfers, setSortedTransfers] = useState<P2PTransfer[]>([]);
@@ -49,7 +88,7 @@ export function P2PTransactions({ transfers, currentUserId }: P2PTransactionsPro
 
     if (isLoading) {
         return (
-            <Card className="p-4 max-w-md mx-auto">
+            <Card title="" className="p-4 max-w-md mx-auto">
                 <div className="flex justify-center items-center h-32">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 dark:border-gray-100" />
                 </div>
@@ -59,16 +98,16 @@ export function P2PTransactions({ transfers, currentUserId }: P2PTransactionsPro
 
     if (error) {
         return (
-            <Card className="p-4 max-w-md mx-auto">
+            <Card title='' className="">
                 <p className="text-purple-500 text-center">{error}</p>
             </Card>
         );
     }
 
     return (
-        <Card className="p-4 max-w-md mx-auto bg-white dark:bg-gray-800 shadow-sm">
+        <Card title="" className="">
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                Transaction History
+                
             </h2>
             <div className="space-y-2">
                 {sortedTransfers.length === 0 ? (
@@ -85,14 +124,25 @@ export function P2PTransactions({ transfers, currentUserId }: P2PTransactionsPro
                         return (
                             <div
                                 key={transfer.id}
-                                className={`p-2 rounded-lg border transition-all duration-200
-                                    hover:bg-purple-50 dark:hover:bg-purple-900
-                                    border-gray-200 dark:border-gray-700`}
+                                className={`p-4 rounded-lg border transition-all duration-200 
+                                    ${isOutgoing 
+                                        ? 'bg-gradient-to-r from-violet-50/40 to-fuchsia-50/40 hover:from-violet-50/60 hover:to-fuchsia-50/60 dark:from-violet-950/30 dark:to-fuchsia-950/30' 
+                                        : 'bg-gradient-to-r from-sky-50/40 to-indigo-50/40 hover:from-sky-50/60 hover:to-indigo-50/60 dark:from-sky-950/30 dark:to-indigo-950/30'
+                                    }
+                                    shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] 
+                                    hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)]
+                                    transform hover:-translate-y-[2px]
+                                    border-gray-100 dark:border-gray-800/60`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center space-x-3">
                                         <div
-                                            className="w-6 h-6 rounded-full flex items-center justify-center bg-purple-100 dark:bg-purple-800"
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center 
+                                                ${isOutgoing 
+                                                    ? 'bg-gradient-to-br from-purple-400 to-pink-500 text-white' 
+                                                    : 'bg-gradient-to-br from-blue-400 to-cyan-500 text-white'
+                                                }
+                                                transform transition-transform duration-200 hover:scale-110`}
                                         >
                                             <span className="text-xs">
                                                 {isOutgoing ? '↑' : '↓'}
