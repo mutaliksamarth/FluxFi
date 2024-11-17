@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { Providers } from "../provider";
 import { AppbarClient } from "@/components/AppbarClient";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,11 +27,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-           
-              
-              
-             
-
             <div className="min-h-screen flex flex-col relative">
               <AppbarClient />
               <main className="flex-1">
@@ -39,6 +35,7 @@ export default function RootLayout({
             </div>
           </Providers>
         </ThemeProvider>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

@@ -1,14 +1,14 @@
 "use client"
 
 import { Button } from "./button"
-import { Moon, Sun, Settings, LogOut, User, Divide } from "lucide-react"
+import { Moon, Sun, LogOut, User } from "lucide-react"
 import { useTheme } from "next-themes"
 import * as React from "react"
 import * as SwitchPrimitives from "@radix-ui/react-switch"
 import { cn } from "../../lib/util"
 import { useState, useEffect } from 'react'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { useSession, signOut } from "next-auth/react"
 
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
@@ -31,7 +31,6 @@ const Switch = React.forwardRef<
 ))
 Switch.displayName = SwitchPrimitives.Root.displayName
 
-// First create a DropdownMenuItem component for consistent styling
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenu.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenu.Item>
@@ -51,29 +50,25 @@ const DropdownMenuItem = React.forwardRef<
   </DropdownMenu.Item>
 ));
 
-interface AppbarProps {
-    user: { name: string } | null
-    onSignin: () => void
-    onSignout: () => void
+interface AppBarProps {
+  onSignin: () => void;
 }
 
 export const Appbar = ({
-    user,
-    onSignin,
-    onSignout
-}: AppbarProps) => {
+  onSignin
+}: AppBarProps) => {
     const { theme, setTheme } = useTheme()
     const [isVisible, setIsVisible] = useState(true)
     const [lastScrollY, setLastScrollY] = useState(0)
-    
+    const { data: session, status } = useSession()
 
     useEffect(() => {
         const controlNavbar = () => {
             const currentScrollY = window.scrollY
             
-            if (currentScrollY > lastScrollY && currentScrollY > 30) { // Scrolling down & past header
+            if (currentScrollY > lastScrollY && currentScrollY > 30) {
                 setIsVisible(false)
-            } else { // Scrolling up
+            } else {
                 setIsVisible(true)
             }
             
@@ -87,10 +82,12 @@ export const Appbar = ({
         }
     }, [lastScrollY])
 
-    const handleSignout = () => {
-      onSignout()
-      sessionStorage.removeItem('user')
-      window.location.href = 'auth/signin'
+    const handleSignout = async () => {
+      try {
+        await signOut({ redirect: true, callbackUrl: '/auth/signin' })
+      } catch (error) {
+        console.error('Signout failed:', error)
+      }
     }
 
     return (
@@ -101,19 +98,22 @@ export const Appbar = ({
         )}>
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center gap-3 group">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-purple-800 dark:from-purple-400 dark:via-pink-300 dark:to-purple-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200 hover:cursor-pointer "onClick={()=>
-                          window.location.href = '/dashboard'
-                        }>
+                    <div className="flex items-center gap-3 group">
+                        <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-purple-800 dark:from-purple-400 dark:via-pink-300 dark:to-purple-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200 hover:cursor-pointer" 
+                          onClick={() => {if(session?.user?.name){
+                            window.location.href = '/dashboard'
+                          } else {
+                            window.location.href = '/auth/signin'
+                          }}}>
                             FluxFi
                         </div>
                         <div className="h-6 w-[1px] bg-gradient-to-b from-transparent via-gray-200 dark:via-gray-700 to-transparent opacity-50"></div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {user?.name && (
+                        {status !== 'loading' && session?.user?.name && (
                             <span className="text-sm text-gray-700 dark:text-gray-300">
-                                Hello, {user.name}
+                                Hello, {session.user.name}
                             </span>
                         )}
                         
@@ -127,61 +127,64 @@ export const Appbar = ({
                             />
                             <Moon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         </div>
-                        {user ? (
-                          <div>
-                        
-                        <DropdownMenu.Root>
-                            <DropdownMenu.Trigger asChild>
-                                <button className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 transition">
-                                    {user ? user.name.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
-                                </button>
-                            </DropdownMenu.Trigger>
 
-                            <DropdownMenu.Portal>
-                                <DropdownMenu.Content
-                                  className={cn(
-                                    "z-50 min-w-[240px] overflow-hidden rounded-xl border shadow-lg",
-                                    "bg-white dark:bg-gray-900",
-                                    "border-gray-200 dark:border-gray-800",
-                                    "animate-in fade-in-0 zoom-in-95"
-                                  )}
-                                >
-                                  <div className="px-3 py-2.5 border-b border-gray-200 dark:border-gray-800">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                      {user?.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      
-                                    </p>
-                                  </div>
-                                
-                                  <div className="p-1.5">
-                                    <DropdownMenuItem onClick={() => {
-                                      window.location.href = '/profile'
-                                    }}>
-                                      <User className="w-4 h-4" />
-                                      Profile
-                                    </DropdownMenuItem>
-                                    
-                                  </div>
-                                
-                                  <DropdownMenu.Separator className="h-px bg-gray-200 dark:bg-gray-800 m-1" />
-                                  
-                                  <div className="p-1.5">
-                                    <DropdownMenuItem 
-                                      className="text-red-600 dark:text-red-400"
-                                      onClick={handleSignout}
+                        {status === 'loading' ? (
+                          <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 animate-pulse" />
+                        ) : status === 'authenticated' && session?.user ? (
+                          <div>
+                            <DropdownMenu.Root>
+                                <DropdownMenu.Trigger asChild>
+                                    <button className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 transition">
+                                        {session.user.name?.charAt(0).toUpperCase() || <User className="h-4 w-4" />}
+                                    </button>
+                                </DropdownMenu.Trigger>
+
+                                <DropdownMenu.Portal>
+                                    <DropdownMenu.Content
+                                      className={cn(
+                                        "z-50 min-w-[240px] overflow-hidden rounded-xl border shadow-lg",
+                                        "bg-white dark:bg-gray-900",
+                                        "border-gray-200 dark:border-gray-800",
+                                        "animate-in fade-in-0 zoom-in-95"
+                                      )}
                                     >
-                                      <LogOut className="w-4 h-4" />
-                                      Sign out
-                                    </DropdownMenuItem>
-                                  </div>
-                                </DropdownMenu.Content>
-                            </DropdownMenu.Portal>
-                        </DropdownMenu.Root>
-                        </div>
+                                      <div className="px-3 py-2.5 border-b border-gray-200 dark:border-gray-800">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                          {session.user.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                          {session.user.email}
+                                        </p>
+                                      </div>
+                                    
+                                      <div className="p-1.5">
+                                        <DropdownMenuItem onClick={() => {
+                                          window.location.href = '/profile'
+                                        }}>
+                                          <User className="w-4 h-4" />
+                                          Profile
+                                        </DropdownMenuItem>
+                                      </div>
+                                    
+                                      <DropdownMenu.Separator className="h-px bg-gray-200 dark:bg-gray-800 m-1" />
+                                      
+                                      <div className="p-1.5">
+                                        <DropdownMenuItem 
+                                          className="text-red-600 dark:text-red-400"
+                                          onClick={handleSignout}
+                                        >
+                                          <LogOut className="w-4 h-4" />
+                                          Sign out
+                                        </DropdownMenuItem>
+                                      </div>
+                                    </DropdownMenu.Content>
+                                </DropdownMenu.Portal>
+                            </DropdownMenu.Root>
+                          </div>
                         ) : (
-                            <Button onClick={onSignin}>Sign in</Button>
+                            <Button onClick={onSignin}>
+                                Sign in
+                            </Button>
                         )}
                     </div>
                 </div>
