@@ -1,13 +1,14 @@
 "use client"
 
 import { Button } from "./button"
-import { Moon, Sun, Settings, LogOut, User } from "lucide-react"
+import { Moon, Sun, Settings, LogOut, User, Divide } from "lucide-react"
 import { useTheme } from "next-themes"
 import * as React from "react"
 import * as SwitchPrimitives from "@radix-ui/react-switch"
 import { cn } from "../../lib/util"
 import { useState, useEffect } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+
 
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
@@ -64,6 +65,7 @@ export const Appbar = ({
     const { theme, setTheme } = useTheme()
     const [isVisible, setIsVisible] = useState(true)
     const [lastScrollY, setLastScrollY] = useState(0)
+    
 
     useEffect(() => {
         const controlNavbar = () => {
@@ -85,6 +87,12 @@ export const Appbar = ({
         }
     }, [lastScrollY])
 
+    const handleSignout = () => {
+      onSignout()
+      sessionStorage.removeItem('user')
+      window.location.href = 'auth/signin'
+    }
+
     return (
         <nav className={cn(
             "border-b dark:border-gray-800",
@@ -94,7 +102,9 @@ export const Appbar = ({
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center gap-3 group">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-purple-800 dark:from-purple-400 dark:via-pink-300 dark:to-purple-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200">
+                        <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-purple-800 dark:from-purple-400 dark:via-pink-300 dark:to-purple-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-200 hover:cursor-pointer "onClick={()=>
+                          window.location.href = '/dashboard'
+                        }>
                             FluxFi
                         </div>
                         <div className="h-6 w-[1px] bg-gradient-to-b from-transparent via-gray-200 dark:via-gray-700 to-transparent opacity-50"></div>
@@ -117,7 +127,9 @@ export const Appbar = ({
                             />
                             <Moon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         </div>
-
+                        {user ? (
+                          <div>
+                        
                         <DropdownMenu.Root>
                             <DropdownMenu.Trigger asChild>
                                 <button className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 transition">
@@ -144,15 +156,13 @@ export const Appbar = ({
                                   </div>
                                 
                                   <div className="p-1.5">
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => {
+                                      window.location.href = '/profile'
+                                    }}>
                                       <User className="w-4 h-4" />
                                       Profile
                                     </DropdownMenuItem>
                                     
-                                    <DropdownMenuItem>
-                                      <Settings className="w-4 h-4" />
-                                      Settings
-                                    </DropdownMenuItem>
                                   </div>
                                 
                                   <DropdownMenu.Separator className="h-px bg-gray-200 dark:bg-gray-800 m-1" />
@@ -160,7 +170,7 @@ export const Appbar = ({
                                   <div className="p-1.5">
                                     <DropdownMenuItem 
                                       className="text-red-600 dark:text-red-400"
-                                      onClick={onSignout}
+                                      onClick={handleSignout}
                                     >
                                       <LogOut className="w-4 h-4" />
                                       Sign out
@@ -169,6 +179,10 @@ export const Appbar = ({
                                 </DropdownMenu.Content>
                             </DropdownMenu.Portal>
                         </DropdownMenu.Root>
+                        </div>
+                        ) : (
+                            <Button onClick={onSignin}>Sign in</Button>
+                        )}
                     </div>
                 </div>
             </div>

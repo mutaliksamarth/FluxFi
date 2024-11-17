@@ -2,8 +2,6 @@ import db from "@repo/db/client";
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcrypt";
 
-import { pages } from "next/dist/build/templates/app-page";
-
 export const authOptions = {
     providers: [
       CredentialsProvider({
@@ -14,8 +12,7 @@ export const authOptions = {
           },
          
           async authorize(credentials: any) {
-            
-            const hashedPassword = await bcrypt.hash(credentials.password, 10);
+            // Check existing user first
             const existingUser = await db.user.findFirst({
                 where: {
                     number: credentials.phone
@@ -34,11 +31,33 @@ export const authOptions = {
                 return null;
             }
 
+            // Create new user with initial setup
             try {
+                const hashedPassword = await bcrypt.hash(credentials.password, 10);
+                
                 const user = await db.user.create({
                     data: {
                         number: credentials.phone,
-                        password: hashedPassword
+                        password: hashedPassword,
+                        Balance: {
+                            create: {
+                                amount: 0,
+                                locked: 0
+                            }
+                        },
+                        OnRampTransaction: {
+                            create: {
+                                startTime: new Date(),
+                                status: "Processing",
+                                amount: 0,
+                                token: `token_${Date.now()}`,
+                                provider: "System"
+                            }
+                        }
+                    },
+                    include: {
+                        Balance: true,
+                        OnRampTransaction: true
                     }
                 });
             
@@ -48,27 +67,20 @@ export const authOptions = {
                     email: user.number
                 }
             } catch(e) {
-                console.error(e);
+                console.error('User creation error:', e);
+                return null;
             }
-
-            return null
           },
         })
     ],
     secret: process.env.JWT_SECRET || "secret",
     callbacks: {
-       
         async session({ token, session }: any) {
             session.user.id = token.sub
-
             return session
         }
     },
     pages: {
         signIn: '/auth/signin',
-        
-        
     }
 }
-  
-  

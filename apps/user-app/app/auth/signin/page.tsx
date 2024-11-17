@@ -32,7 +32,15 @@ export default function SignIn() {
       if (result?.error) {
         setError('Invalid credentials');
       } else {
-        router.push('/dashboard');
+        // Check if user is new by looking at the name property
+        const session = await fetch('/api/auth/session').then(res => res.json());
+        if (!session?.user?.name) {
+          // New user - redirect to profile
+          router.push('/profile');
+        } else {
+          // Existing user - redirect to dashboard
+          router.push('/dashboard');
+        }
       }
     } catch (error) {
       setError('An error occurred during authentication');
@@ -41,18 +49,7 @@ export default function SignIn() {
     }
   };
 
-  const onContinue = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.post('/api/continue', { number: formData.phone });
-      setUser(response.data.user);
-    } catch (error) {
-      console.error(error);
-      // Handle error
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">

@@ -71,7 +71,7 @@ export default function Layout({
          
           <SidebarItem 
             href="/dashboard" 
-            icon={<ArrowLeftRight />} 
+            icon={<Home />} 
             title="Home" 
             isCollapsed={isCollapsed}
           />
